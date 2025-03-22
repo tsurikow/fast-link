@@ -13,7 +13,7 @@ from backend.app.api.routes.auth_users import (
 from backend.app.core.config import settings
 from backend.app.db.session import get_session
 from backend.app.models.url import URL
-from backend.app.schemas.url import URLCreate, URLResponse
+from backend.app.api.schemas.url import URLCreate, URLResponse
 from backend.app.services.shortener import generate_unique_short_code
 
 router = APIRouter()
@@ -27,7 +27,7 @@ async def get_optional_current_user(request: Request) -> Optional:
     except Exception:
         return None
 
-@router.post("/", response_model=URLResponse, summary="Create a new shortened URL")
+@router.post("/url", response_model=URLResponse, summary="Create a new shortened URL")
 async def create_url(
     url_data: URLCreate,
     db: AsyncSession = Depends(get_session),
@@ -50,7 +50,7 @@ async def create_url(
     await db.commit()
     await db.refresh(new_url)
 
-    full_short_url = f"http://localhost:8000/{new_url.short_code}"
+    full_short_url = f"{settings.APP_URL}{new_url.short_code}"
 
     return URLResponse(
         short_code=new_url.short_code,
@@ -62,11 +62,19 @@ async def create_url(
 
 
 @router.get("/{short_code}", summary="Redirect to the original URL")
-async def get_url(short_code: str, db: AsyncSession = Depends(get_session)):
+async def get_url(
+        short_code: str,
+        db: AsyncSession = Depends(get_session),
+        no_redirect: bool = False
+):
     result = await db.execute(select(URL).where(URL.short_code == short_code))
     url_entry = result.scalar_one_or_none()
     if not url_entry:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL not found")
     if url_entry.expires_at and datetime.now(timezone.utc) > url_entry.expires_at:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL expired")
+
+    if no_redirect:
+        return {"redirect_url": url_entry.original_url}
+
     return RedirectResponse(url=url_entry.original_url)

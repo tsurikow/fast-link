@@ -33,5 +33,6 @@ class Settings(BaseSettings):
 
     # URL shortener configuration
     URL_EXPIRE_MINUTES: int = Field(..., env="URL_EXPIRE_MINUTES")
+    APP_URL: str = Field(..., env="APP_URL")
 
 settings = Settings()
