@@ -7,14 +7,26 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 repository = "https://github.com/tsurikow/fast-link"
 dependencies = [
+    "loguru>=0.7.3",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.8.1",
+]
+
+[project.optional-dependencies]
+backend = [
     "aiohttp>=3.11.14",
     "alembic>=1.15.1",
     "asyncpg>=0.30.0",
     "fastapi>=0.115.11",
-    "fastapi-users>=14.0.1",
-    "pydantic>=2.10.6",
+    "fastapi-users[sqlalchemy]>=14.0.1",
+    "passlib>=1.7.4",
+    "python-jose>=3.4.0",
     "redis>=5.2.1",
     "sqlalchemy>=2.0.39",
+    "uvicorn>=0.34.0",
+]
+frontend = [
+    "requests>=2.32.3",
     "streamlit>=1.43.2",
 ]
 
@@ -52,4 +64,5 @@ lint.ignore = ["N805"]
 exclude = [
     ".venv",
     ".idea",
+    "versions"
 ]

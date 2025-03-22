@@ -12,7 +12,7 @@ services:
       command: [ "--requirepass", "${REDIS_PASSWORD}" ]
 
    postgres:
-      image: postgres:16-alpine
+      image: postgres:17-alpine
       restart: always
       env_file: .env
       environment:
@@ -27,30 +27,31 @@ services:
       volumes:
          - postgres-data:${POSTGRES_DATA}
 
-   pgadmin:
-      container_name: pgadmin4_container
-      image: dpage/pgadmin4:7
-      restart: always
-      environment:
-         PGADMIN_DEFAULT_EMAIL: admin@admin.com
-         PGADMIN_DEFAULT_PASSWORD: root
-      ports:
-         - "5050:80"
-      volumes:
-         - pgadmin-data:/var/lib/pgadmin
-
-   bot:
-      build: .
+   fastapi:
+      build:
+         context: .
+         dockerfile: backend/Dockerfile
       restart: always
       env_file: .env
       depends_on:
          - redis
          - postgres
       ports:
-         - "${SERVER_PORT}:${SERVER_PORT}"
-      entrypoint: [ "/app/scripts/run-bot.sh" ]
+         - "${FASTAPI_PORT}:${FASTAPI_PORT}"
+      command: /app/backend/scripts/entrypoint.sh
+
+   streamlit:
+      build:
+         context: .
+         dockerfile: frontend/Dockerfile
+      restart: always
+      env_file: .env
+      depends_on:
+         - fastapi
+      ports:
+         - "${STREAMLIT_PORT}:${STREAMLIT_PORT}"
+      command: streamlit run frontend/app.py --server.port ${STREAMLIT_PORT}
 
 volumes:
    redis-data:
    postgres-data:
-   pgadmin-data:
