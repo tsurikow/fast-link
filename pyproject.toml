@@ -1,0 +1,55 @@
+[project]
+name = "fast-link"
+version = "0.1.0"
+description = "A lightweight URL shortener service with user authentication, built with FastAPI and Streamlit."
+authors = ["Vitaly Tsurikov <vitsurikov@edu.hse.ru>"]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+repository = "https://github.com/tsurikow/fast-link"
+dependencies = [
+    "aiohttp>=3.11.14",
+    "alembic>=1.15.1",
+    "asyncpg>=0.30.0",
+    "fastapi>=0.115.11",
+    "fastapi-users>=14.0.1",
+    "pydantic>=2.10.6",
+    "redis>=5.2.1",
+    "sqlalchemy>=2.0.39",
+    "streamlit>=1.43.2",
+]
+
+[project.urls]
+repository = "https://github.com/tsurikow/fast-link"
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.11.1",
+]
+
+[tool.black]
+line-length = 99
+exclude = "\\.?venv|\\.?tests"
+
+[tool.ruff]
+target-version = "py38"
+line-length = 99
+lint.select = [
+    "C",
+    "DTZ",
+    "E",
+    "F",
+    "I",
+    "ICN",
+    "N",
+    "PLC",
+    "PLE",
+    "Q",
+    "T",
+    "W",
+    "YTT",
+]
+lint.ignore = ["N805"]
+exclude = [
+    ".venv",
+    ".idea",
+]
