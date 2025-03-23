@@ -1,7 +1,7 @@
 import hashlib
 import string
 
-from backend.app.services.cache import redis_client
+from backend.app.services.cache import store_short_code, check_collision
 
 # Character set for base62 encoding and desired code length
 CHARSET = string.ascii_letters + string.digits
@@ -31,21 +31,6 @@ def generate_hash(url: str, salt: str = "") -> str:
     encoded = base62_encode(hash_int)
     # Truncate to the desired short code length
     return encoded[:SHORT_CODE_LENGTH]
-
-async def check_collision(code: str) -> bool:
-    """
-    Check if the generated short code already exists in Redis.
-    Returns True if it exists.
-    """
-    exists = await redis_client.exists(code)
-    return exists == 1
-
-async def store_short_code(code: str, url: str, expire: int = None) -> bool:
-    """
-    Store the mapping of short code to original URL in Redis.
-    Optionally set an expiration time (in seconds) for the key.
-    """
-    return await redis_client.set(code, url, ex=expire)
 
 async def generate_unique_short_code(url: str, max_attempts: int = 5) -> str:
     """

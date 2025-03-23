@@ -7,7 +7,7 @@ from fastapi_users.manager import BaseUserManager, UUIDIDMixin
 
 from backend.app.core.config import settings
 from backend.app.core.logging_config import logger
-from backend.app.db.session import get_session
+from backend.app.db.session import get_user_db
 from backend.app.models.user import User
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
@@ -27,6 +27,5 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     ):
         logger.info(f"Verification requested for user {user.id}. Verification token: {token}")
 
-async def get_user_manager(session=Depends(get_session)):
-    user_db = SQLAlchemyUserDatabase(session, User)
+async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)

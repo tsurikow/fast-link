@@ -12,3 +12,4 @@ class URLResponse(BaseModel):
     original_url: str
     created_at: datetime
     expires_at: datetime | None = None
+    short_link: str | None = None
