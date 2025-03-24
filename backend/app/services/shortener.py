@@ -6,7 +6,7 @@ from backend.app.services.cache import store_short_code, check_collision
 # Character set for base62 encoding and desired code length
 CHARSET = string.ascii_letters + string.digits
 BASE = len(CHARSET)
-SHORT_CODE_LENGTH = 5
+SHORT_CODE_LENGTH = 6
 
 def base62_encode(num: int) -> str:
     """Convert an integer to a base62 string."""

@@ -11,19 +11,18 @@ from asyncpg.exceptions import UndefinedTableError
 
 from backend.app.api.routes.auth_users import router as auth_users_router
 from backend.app.api.routes.auth_users import fastapi_users, auth_backend
-from backend.app.api.routes.urls import router as urls_router
+from backend.app.api.routes.url import router as urls_router
 from backend.app.core.config import settings
 from backend.app.core.logging_config import request_id_timing
 from backend.app.db.session import get_async_session
 from backend.app.models.url import URL
 from backend.app.services.expiration import move_expired_urls
-from backend.app.services.cache import store_short_code
+from backend.app.services.cache import store_short_code, delete_cache
 
 logger = logging.getLogger("fast-link")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Warm up Redis with active URL records (i.e. not expired)
     session_gen = get_async_session()
     session = await session_gen.__anext__()
     try:
@@ -41,17 +40,14 @@ async def lifespan(app: FastAPI):
     finally:
         await session.close()
 
-    # Start background task for moving expired URLs (and transferring relationships)
     async def expiration_task():
         while True:
             session_gen = get_async_session()
             session = await session_gen.__anext__()
             try:
-                # Assume move_expired_urls now transfers associations
                 expired_shortcodes = await move_expired_urls(session)
                 if expired_shortcodes:
                     logger.info(f"Moved expired URLs and transferred relationships for codes: {expired_shortcodes}")
-                    # Optionally, delete expired keys from Redis here if needed.
                     for code in expired_shortcodes:
                         await delete_cache(code)
                         logger.info(f"Deleted expired cache key: {code}")

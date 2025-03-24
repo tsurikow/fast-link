@@ -61,5 +61,6 @@ lint.ignore = ["N805"]
 exclude = [
     ".venv",
     ".idea",
-    "versions"
+    "versions",
+    "env.py"
 ]

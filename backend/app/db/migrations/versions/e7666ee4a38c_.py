@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: d73abbdd5422
+Revision ID: e7666ee4a38c
 Revises: 
-Create Date: 2025-03-23 11:20:39.213223
+Create Date: 2025-03-24 17:49:00.631631
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd73abbdd5422'
+revision: str = 'e7666ee4a38c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,24 +32,30 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
     op.create_table('expired_urls',
-    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('short_code', sa.String(), nullable=False),
     sa.Column('original_url', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('created_by', sa.UUID(), nullable=True),
+    sa.Column('hit_count', sa.Integer(), server_default='0', nullable=False),
     sa.Column('moved_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_by', sa.UUID(), nullable=True),
+    sa.Column('last_used_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('fixed_expiration', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.ForeignKeyConstraint(['created_by'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_expired_urls_short_code'), 'expired_urls', ['short_code'], unique=True)
+    op.create_index(op.f('ix_expired_urls_short_code'), 'expired_urls', ['short_code'], unique=False)
     op.create_table('urls',
-    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('short_code', sa.String(), nullable=False),
     sa.Column('original_url', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('hit_count', sa.Integer(), server_default='0', nullable=False),
     sa.Column('created_by', sa.UUID(), nullable=True),
+    sa.Column('last_used_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('fixed_expiration', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.ForeignKeyConstraint(['created_by'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
