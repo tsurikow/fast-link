@@ -1,26 +1,10 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
-
-from fastapi import Request
 from sqlalchemy import update
 from sqlalchemy.future import select
-
-
-from backend.app.api.routes.auth_users import auth_backend, fastapi_users
 from backend.app.core.config import settings
 from backend.app.db.session import get_async_session
 from backend.app.models.url import URL
 from backend.app.core.logging_config import logger
-
-
-async def get_optional_current_user(request: Request) -> Optional:
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return None
-    try:
-        return await fastapi_users.current_user(auth_backend)(request)
-    except Exception:
-        return None
 
 
 async def update_url_background(short_code: str) -> None:

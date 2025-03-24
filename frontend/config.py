@@ -18,5 +18,6 @@ class Settings(BaseSettings):
 
     # Optional: A title for your Streamlit app
     APP_TITLE: str = Field(..., env="APP_TITLE")
+    APP_URL: str = Field(..., env="APP_URL")
 
 settings = Settings()
