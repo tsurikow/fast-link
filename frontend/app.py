@@ -1,11 +1,8 @@
 import requests
 import streamlit as st
-
-# Import configuration from core/config.py
 from core.config import settings
 from loguru import logger
 
-# Configure Loguru to log to stdout and a log file.
 logger.remove()
 logger.add("stdout", format="{time} {level} {message}", level="INFO")
 logger.add("app.log", format="{time} {level} {message}", level="INFO",
@@ -13,7 +10,6 @@ logger.add("app.log", format="{time} {level} {message}", level="INFO",
            retention="10 days",
            compression="zip")
 
-# Build the FastAPI URL using settings
 FASTAPI_URL = f"{settings.FASTAPI_URL}:{settings.FASTAPI_PORT}"
 APP_TITLE = getattr(settings, "APP_TITLE", "Fast-Link Frontend")
 
@@ -21,13 +17,11 @@ logger.info("Starting Streamlit app", extra={"FASTAPI_URL": FASTAPI_URL, "APP_TI
 
 
 def login_user(username: str, password: str) -> str:
-    """Call FastAPI /auth/jwt/login endpoint to authenticate the user."""
     url = f"{FASTAPI_URL}/auth/jwt/login"
     payload = {"username": username, "password": password}
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     logger.debug(f"Attempting login for user: {username} with url: {url}")
 
-    # Send as form data (required by OAuth2PasswordRequestForm)
     response = requests.post(url, data=payload, headers=headers)
 
     if response.status_code == 200:
@@ -42,7 +36,6 @@ def login_user(username: str, password: str) -> str:
 
 
 def register_user(username: str, email: str, password: str) -> bool:
-    """Call FastAPI /auth/register endpoint to register a new user."""
     url = f"{FASTAPI_URL}/auth/register"
     payload = {"username": username, "email": email, "password": password}
     logger.debug(f"Registering user: {username} at {url}")
@@ -57,7 +50,6 @@ def register_user(username: str, email: str, password: str) -> bool:
 
 
 def create_short_url(original_url: str, token: str) -> str:
-    """Call FastAPI /urls endpoint to create a short link."""
     url = f"{FASTAPI_URL}/urls/"
     headers = {"Authorization": f"Bearer {token}"}
     payload = {"original_url": original_url, "expires_in_minutes": 0}
@@ -73,7 +65,6 @@ def create_short_url(original_url: str, token: str) -> str:
 
 
 def get_current_user_info(token: str) -> dict:
-    """Fetch current user information from /users/me."""
     url = f"{FASTAPI_URL}/users/me"
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.get(url, headers=headers)
@@ -85,16 +76,13 @@ def get_current_user_info(token: str) -> dict:
         return {}
 
 
-# --- Streamlit UI ---
 
 def main():
     st.title(APP_TITLE)
 
-    # Initialize token in session state
     if "token" not in st.session_state:
         st.session_state.token = None
 
-    # Navigation menu
     menu = st.sidebar.radio("Navigation",
                             ["Login",
                              "Register",

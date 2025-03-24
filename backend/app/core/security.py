@@ -1,28 +1,18 @@
+import uuid
+from fastapi_users import FastAPIUsers, models
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
     JWTStrategy,
 )
-from passlib.context import CryptContext
 
+from backend.app.models.user import User
 from backend.app.core.config import settings
+from backend.app.core.manager import get_user_manager
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verify a plain password against its hashed version.
-    """
-    return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password: str) -> str:
-    """
-    Hash a password for storing.
-    """
-    return pwd_context.hash(password)
-
-def get_jwt_strategy() -> JWTStrategy:
+def get_jwt_strategy() -> JWTStrategy[models.UP, models.ID]:
     """
     Return a JWT strategy for creating and verifying tokens.
     """
@@ -40,3 +30,10 @@ auth_backend = AuthenticationBackend(
     transport=bearer_transport,
     get_strategy=get_jwt_strategy,
 )
+
+fastapi_users = FastAPIUsers[User, uuid.UUID](
+    get_user_manager,
+    [auth_backend],
+)
+
+current_active_user = fastapi_users.current_user(active=True)
