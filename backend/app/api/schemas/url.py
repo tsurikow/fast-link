@@ -41,4 +41,11 @@ class URLCustomCreate(BaseModel):
         return value
 
 class URLUpdateRequest(BaseModel):
-    original_url: Optional[str] = None
+    original_url: str | None = None
+    regenerate: bool = True
+
+class URLListResponse(URLResponse):
+    hit_count: int
+    last_used_at: Optional[datetime] = None
+    fixed_expiration: bool
+    moved_at: Optional[datetime] = None

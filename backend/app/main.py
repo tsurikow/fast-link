@@ -11,7 +11,7 @@ from asyncpg.exceptions import UndefinedTableError
 
 from backend.app.api.routes.auth_users import router as auth_users_router
 from backend.app.api.routes.auth_users import fastapi_users, auth_backend
-from backend.app.api.routes.url import router as urls_router
+from backend.app.api.routes.url import router as url_router
 from backend.app.core.config import settings
 from backend.app.core.logging_config import request_id_timing
 from backend.app.db.session import get_async_session
@@ -84,7 +84,7 @@ app.add_middleware(
 app.middleware("http")(request_id_timing)
 
 app.include_router(auth_users_router)
-app.include_router(urls_router)
+app.include_router(url_router)
 
 @app.get("/", tags=["root"])
 async def root():

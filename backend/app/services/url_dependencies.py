@@ -3,12 +3,12 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.db.session import get_async_session
 from backend.app.models.url import URL
-from backend.app.api.routes.auth_users import fastapi_users, auth_backend
+from backend.app.core.security import current_active_user
 
 async def get_user_owned_url(
     short_code: str,
     db: AsyncSession = Depends(get_async_session),
-    current_user = Depends(fastapi_users.current_user(auth_backend))
+    current_user = Depends(current_active_user)
 ) -> URL:
     result = await db.execute(select(URL).where(URL.short_code == short_code))
     url_entry = result.scalar_one_or_none()
