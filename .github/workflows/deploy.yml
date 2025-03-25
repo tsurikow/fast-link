@@ -1,0 +1,47 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main  # Change if using another branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: SSH into VPS and Deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            PROJECT_DIR="/fast-link"
+            GIT_REPO="git@github.com:tsurikow/fast-link.git"
+            BRANCH="main"
+
+            # If directory exists but is NOT a git repository, remove it and re-clone
+            if [ ! -d "$PROJECT_DIR/.git" ]; then
+                echo "Project directory exists but is not a git repository. Recreating..."
+                rm -rf "$PROJECT_DIR"
+                git clone -b $BRANCH $GIT_REPO $PROJECT_DIR
+            fi
+
+            cd $PROJECT_DIR
+
+            # Ensure repo is clean and up to date
+            git reset --hard
+            git pull origin $BRANCH
+
+            # Ensure deploy.sh exists and is executable
+            if [ ! -f "scripts/deploy.sh" ]; then
+                echo "Error: scripts/deploy.sh not found!"
+                exit 1
+            fi
+
+            chmod +x scripts/deploy.sh
+            ./scripts/deploy.sh
