@@ -22,7 +22,7 @@ from backend.app.services.url_utils import (
 )
 from backend.app.services.url_dependencies import get_user_owned_url
 
-router = APIRouter()
+router = APIRouter(tags=["urls"])
 
 
 @router.post("/url", response_model=URLResponse, summary="Create a new shortened URL")

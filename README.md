@@ -160,18 +160,92 @@ Place this script in the root of your repository, mark it executable (chmod +x s
 
 ---
 
-## Usage
+## FastAPI API Endpoints
 
-### FastAPI API Endpoints
-- **POST /url:** Create or update a shortened URL.
-- **POST /shorten:** Create a custom short URL with a user-defined short code and expiration time (authenticated only).
-- **GET /{short_code}:** Redirect to the original URL.
-- **PUT /{short_code}:** Update a URL. Users can choose whether to regenerate the short code.
-- **DELETE /{short_code}:** Move a URL to expired history.
-- **GET /{short_code}/stats:** Retrieve URL usage statistics.
-- **GET /my_urls?type=active|expired:** Get URLs created by the authenticated user, filtered by active or expired status.
+### Urls Group
 
-### Streamlit Frontend
+1. **POST /url**  
+   **Description:**  
+   - Creates a new shortened URL or updates an existing one.
+   - **For authenticated users:**  
+     - The endpoint checks if a URL with the same original URL already exists for that user. If found, it refreshes its expiration date.
+     - If not found, it creates a new URL record and assigns the user’s ID to the `created_by` field.
+   - **For anonymous users:**  
+     - A new URL is always created (with `created_by` set to null).
+
+2. **GET /my_urls**  
+   **Description:**  
+   - Retrieves a list of URLs created by the authenticated user.
+   - Accepts a query parameter (`url_type`) with values `"active"` or `"expired"`:
+     - **active:** Returns URLs from the active URLs table.
+     - **expired:** Returns URLs from the expired URLs table.
+   - The results are sorted by creation date in descending order.
+
+3. **POST /shorten**  
+   **Description:**  
+   - Allows an authenticated user to create a custom short URL.
+   - The user specifies a custom short code and an expiration time.
+   - The endpoint validates that the expiration time is in the future and that the custom short code is unique.
+   - On success, a new URL record is created with the provided details.
+
+4. **GET /search**  
+   **Description:**  
+   - Searches for active URLs based on the provided original URL.
+   - Returns a list of URL details that match the given original URL.
+   - If no URLs are found, a 404 error is returned.
+
+5. **GET /{short_code}**  
+   **Description:**  
+   - Redirects the client to the original URL associated with the provided short code.
+   - First checks Redis for a cached mapping; on a cache miss, it queries the database.
+   - Validates that the URL exists and is not expired.
+   - Also schedules a background task to update the URL’s hit counter and expiration (if not fixed).
+
+6. **DELETE /{short_code}**  
+   **Description:**  
+   - Moves a URL from the active table to the expired history.
+   - Only the user who created the URL (as indicated by the `created_by` field) can delete (i.e. move) the URL.
+   - Upon success, the URL is removed from the active table, inserted into the expired URLs table (preserving all usage data), and its cache entry in Redis is deleted.
+
+7. **PUT /{short_code}**  
+   **Description:**  
+   - Updates the original URL of an existing record.
+   - Authenticated users can choose whether to generate a new short code:
+     - **If regenerating:** A new short code is generated (using a salt to ensure uniqueness), the old short code is removed from Redis, and the new mapping is stored.
+     - **If not regenerating:** Only the original URL is updated, and the cache is updated with the new original URL while retaining the current short code.
+   - Ownership is enforced: only the creator (as per `created_by`) may update the URL.
+
+8. **GET /{short_code}/stats**  
+   **Description:**  
+   - Retrieves usage statistics for the given short code.
+   - Returns details such as the original URL, creation date, hit count, and last used timestamp.
+   - This endpoint is accessible even for anonymous users (unless further restricted).
+
+### Auth Group
+
+1. **POST /auth/jwt/login**  
+   **Description:**  
+   - Authenticates a user using email and password.
+   - On success, returns a JWT access token for subsequent authenticated requests.
+   - If the credentials are invalid, it returns a 401 error.
+
+2. **POST /auth/register**  
+   **Description:**  
+   - Registers a new user with an email and password.
+   - Validates that the email is in a correct format and not already in use.
+   - Returns a 201 status on success.
+
+### Users Group
+
+1. **GET /users/me**  
+   **Description:**  
+   - Returns detailed information about the current authenticated user.
+   - Requires a valid JWT token and typically includes email and other profile details.
+
+
+---
+
+## Streamlit Frontend
 
 The multipage Streamlit frontend provides an intuitive interface for:
 - Logging in and registering.
@@ -182,6 +256,5 @@ The multipage Streamlit frontend provides an intuitive interface for:
 - Viewing URL statistics.
 - Viewing current user information.
 
-Pages are organized in separate files under the frontend directory (or a pages subdirectory) and accessible via sidebar navigation.
+Pages are organized and accessible via sidebar navigation.
 
----
