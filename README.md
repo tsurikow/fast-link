@@ -258,3 +258,65 @@ The multipage Streamlit frontend provides an intuitive interface for:
 
 Pages are organized and accessible via sidebar navigation.
 
+---
+
+## Database Structure
+
+The Fast-Link service uses a async PostgreSQL database with a schema that includes tables for active URLs, expired URLs, and users. Below is a description of the key tables and their columns:
+
+### Table: urls
+
+This table stores active (non-expired) URL records.
+
+| Column         | Data Type                        | Constraints & Defaults                                    | Description                                                  |
+|----------------|----------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|
+| **id**         | UUID (native, PG_UUID(as_uuid=True))  | Primary key; default: `uuid.uuid4()`                    | Unique identifier for each URL record.                       |
+| **short_code** | String                           | Unique, not null, indexed                                 | The unique short code generated for the URL.                 |
+| **original_url** | String                         | Not null                                                  | The original, long URL provided by the user.                 |
+| **created_at** | DateTime (with timezone)         | Not null; server default: `func.now()`                    | Timestamp when the URL was created.                          |
+| **expires_at** | DateTime (with timezone)         | Nullable                                                  | The expiration timestamp of the URL (if applicable).         |
+| **hit_count**  | Integer                          | Not null; default: `0`                                      | The number of times the short URL has been accessed.         |
+| **created_by** | UUID (native, PG_UUID(as_uuid=True))  | Nullable; foreign key referencing `user.id`             | The ID of the user who created the URL (null for anonymous).   |
+| **last_used_at** | DateTime (with timezone)       | Nullable                                                  | Timestamp of the most recent access of the URL.              |
+| **fixed_expiration** | Boolean                    | Not null; default: `false` (using SQL text "false")       | Flag indicating if the expiration should remain fixed on access.|
+
+---
+
+### Table: expired_urls
+
+This table stores URL records that have expired or have been “deleted” (moved to history). Unlike active URLs, the `short_code` in this table is not required to be unique, allowing reuse of short codes in active URLs.
+
+| Column         | Data Type                        | Constraints & Defaults                                    | Description                                                  |
+|----------------|----------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|
+| **id**         | UUID (native, PG_UUID(as_uuid=True))  | Primary key; default: `uuid.uuid4()`                    | Unique identifier for each expired URL record.               |
+| **short_code** | String                           | Not null, indexed (uniqueness not enforced)               | The short code originally assigned to the URL.               |
+| **original_url** | String                         | Not null                                                  | The original URL provided by the user.                       |
+| **created_at** | DateTime (with timezone)         | Not null; server default: `func.now()`                    | Timestamp when the URL was created.                          |
+| **expires_at** | DateTime (with timezone)         | Nullable                                                  | The expiration timestamp when the URL was valid.             |
+| **hit_count**  | Integer                          | Not null; default: `0`                                      | The number of times the URL was accessed before expiring.      |
+| **moved_at**   | DateTime (with timezone)         | Not null; server default: `func.now()`                    | Timestamp when the URL was moved to the expired history.       |
+| **created_by** | UUID (native, PG_UUID(as_uuid=True))  | Nullable; foreign key referencing `user.id`             | The ID of the user who created the URL (null for anonymous).   |
+| **last_used_at** | DateTime (with timezone)       | Nullable                                                  | Timestamp of the most recent access of the URL.              |
+| **fixed_expiration** | Boolean                    | Not null; default: `false` (using SQL text "false")       | Flag indicating if the expiration was fixed on access.         |
+
+---
+
+### Table: user
+
+The user table is managed by FastAPI Users and typically includes:
+
+| Column  | Data Type                        | Description                                            |
+|---------|----------------------------------|--------------------------------------------------------|
+| **id**  | UUID (native, PG_UUID(as_uuid=True))  | Unique identifier for the user.                         |
+| **email** | String (with Email validation) | The user’s email address (unique).                     |
+| **hashed_password** | String           | Hashed and salted password.                           |
+| **registered_at** | DateTime (with timezone) | Timestamp when the user registered.                  |
+| _Other fields may be present depending on your FastAPI Users configuration._ |
+
+---
+
+This database design ensures:
+- Active URLs have unique short codes.
+- Expired URLs maintain a history of URL usage without enforcing uniqueness on short codes, allowing reuse.
+- User relationships are maintained via a direct foreign key in the URL tables.
+- Essential usage statistics and timestamps (creation, last used, expiration, and moved) are recorded.
