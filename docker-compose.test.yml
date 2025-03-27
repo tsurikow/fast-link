@@ -1,0 +1,58 @@
+services:
+   redis-test:
+      image: redis:7-alpine
+      restart: always
+      env_file: .env.test
+      ports:
+         - "${REDIS_PORT}:${REDIS_PORT}"
+      expose:
+         - "${REDIS_PORT}"
+      volumes:
+         - redis-test-data:${REDIS_DATA}
+      command: [ "--requirepass", "${REDIS_PASSWORD}" ]
+
+   postgres-test:
+      image: postgres:17-alpine
+      restart: always
+      env_file: .env.test
+      environment:
+         POSTGRES_PASSWORD: test_password
+         POSTGRES_USER: test_user
+         POSTGRES_DB: test_db
+         PGDATA: /var/lib/postgresql/test_data
+      ports:
+         - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      expose:
+         - "${POSTGRES_PORT}"
+      volumes:
+         - postgres-test-data:/var/lib/postgresql/test_data
+
+#   fastapi-test:
+#      build:
+#         context: .
+#         dockerfile: backend/Dockerfile
+#      restart: always
+#      env_file: .env.test
+#      depends_on:
+#         - redis
+#         - postgres
+#      ports:
+#         - "${FASTAPI_PORT}:${FASTAPI_PORT}"
+#      command: /app/backend/scripts/entrypoint.sh
+
+   tests:
+      build:
+         context: .
+         dockerfile: backend/Dockerfiletest
+      env_file: .env.test
+      environment:
+         - ENV_FILE=.env.test
+      depends_on:
+#         - fastapi-test
+         - postgres-test
+         - redis-test
+      command: /app/backend/scripts/entrypoint.test.sh
+
+volumes:
+   redis-test-data:
+   postgres-test-data:
