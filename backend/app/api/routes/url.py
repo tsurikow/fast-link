@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Query
-from backend.app.core.security import current_active_user
+from backend.app.core.security import current_active_user, current_optional_active_user
 from backend.app.models.user import User
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ router = APIRouter(tags=["urls"])
 async def create_url(
         url_data: URLCreate,
         db: AsyncSession = Depends(get_async_session),
-        current_user: Optional[User] = Depends(current_active_user)
+        current_user: Optional[User] = Depends(current_optional_active_user)
 ):
 
     if current_user:
@@ -89,7 +89,7 @@ async def get_my_urls(
 async def create_custom_url(
         custom_data: URLCustomCreate,
         db: AsyncSession = Depends(get_async_session),
-        current_user=Depends(current_active_user)
+        current_user = Depends(current_active_user)
 ):
     if custom_data.expiration <= datetime.now(timezone.utc):
         raise HTTPException(

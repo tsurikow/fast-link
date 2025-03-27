@@ -10,14 +10,14 @@ class Settings(BaseSettings):
     )
 
     # Port on which the Streamlit app will run
-    STREAMLIT_PORT: int = Field(..., env="STREAMLIT_PORT")
+    STREAMLIT_PORT: int
 
     # URL for the FastAPI backend that the Streamlit app will interact with
-    FASTAPI_URL: str = Field(..., env="FASTAPI_URL")
-    FASTAPI_PORT: int = Field(..., env="FASTAPI_PORT")
+    FASTAPI_URL: str
+    FASTAPI_PORT: int
 
     # Optional: A title for your Streamlit app
-    APP_TITLE: str = Field(..., env="APP_TITLE")
-    APP_URL: str = Field(..., env="APP_URL")
+    APP_TITLE: str
+    APP_URL: str
 
 settings = Settings()

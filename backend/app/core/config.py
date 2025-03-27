@@ -1,39 +1,40 @@
-from pydantic import Field
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"  # Allow extra env variables without raising errors.
-    )
+    # model_config = SettingsConfigDict(
+    #     env_file=os.getenv("ENV_FILE", ".env"),
+    #     env_file_encoding="utf-8",
+    #     extra="ignore"  # Allow extra env variables without raising errors.
+    # )
 
     # Redis configuration
-    REDIS_HOST: str = Field("redis", env="REDIS_HOST")
-    REDIS_PORT: int = Field(..., env="REDIS_PORT")
-    REDIS_PASSWORD: str = Field(..., env="REDIS_PASSWORD")
-    REDIS_DATA: str = Field(..., env="REDIS_DATA")
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str
+    REDIS_DATA: str
 
     # Postgres configuration
-    POSTGRES_HOST: str = Field("postgres", env="POSTGRES_HOST")
-    POSTGRES_PORT: int = Field(..., env="POSTGRES_PORT")
-    POSTGRES_USER: str = Field(..., env="POSTGRES_USER")
-    POSTGRES_PASSWORD: str = Field(..., env="POSTGRES_PASSWORD")
-    POSTGRES_DB: str = Field(..., env="POSTGRES_DB")
-    POSTGRES_DATA: str = Field(..., env="POSTGRES_DATA")
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_DATA: str
 
     # FastAPI configuration
-    FASTAPI_PORT: int = Field(..., env="FASTAPI_PORT")
+    FASTAPI_PORT: int
 
     # Security configuration for JWT
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
-    ALGORITHM: str = Field(..., env="ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(..., env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     # URL shortener configuration
-    URL_EXPIRE_MINUTES: int = Field(..., env="URL_EXPIRE_MINUTES")
-    APP_URL: str = Field(..., env="APP_URL")
-    EXPIRATION_CHECK_INTERVAL: int = Field(..., env="EXPIRATION_CHECK_INTERVAL")
+    URL_EXPIRE_MINUTES: int
+    APP_URL: str
+    EXPIRATION_CHECK_INTERVAL: int
+
 
 settings = Settings()
