@@ -51,6 +51,8 @@ services:
 #         - fastapi-test
          - postgres-test
          - redis-test
+      volumes:
+         - ./reports:/app/reports
       command: /app/backend/scripts/entrypoint.test.sh
 
 volumes:

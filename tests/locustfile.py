@@ -12,5 +12,4 @@ class FastLinkUser(HttpUser):
 
     @task
     def get_redirect(self):
-        # Use a known short code for testing; in real load tests, you may dynamically fetch it.
         self.client.get("/urls/testcode?no_redirect=true")
