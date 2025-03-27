@@ -90,9 +90,6 @@ app.include_router(url_router)
 async def root():
     return {"message": "Welcome to Fast-Link API!"}
 
-@app.get("/authenticated-route")
-async def authenticated_route(user=Depends(fastapi_users.current_user(auth_backend))):
-    return {"message": f"Hello {user.email}!"}
 
 if __name__ == "__main__":
     import uvicorn

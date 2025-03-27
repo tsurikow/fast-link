@@ -41,11 +41,6 @@ async def create_url(
         )
         existing_url = result.scalar_one_or_none()
         if existing_url:
-            new_expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.URL_EXPIRE_MINUTES)
-            existing_url.expires_at = new_expires_at
-            db.add(existing_url)
-            await db.commit()
-            await db.refresh(existing_url)
             return create_url_response(existing_url)
 
     short_code = await generate_unique_short_code(url_data.original_url)

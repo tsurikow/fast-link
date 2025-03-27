@@ -6,7 +6,6 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.db.base_class import Base
 from backend.app.services.cache import redis_client
 
-# Ensure your models are imported so that they're registered in Base.metadata:
 import backend.app.models
 from backend.app.core.config import settings
 
@@ -39,5 +38,4 @@ async def db_session(setup_db):
 
 @pytest_asyncio.fixture(autouse=True)
 async def clean_redis():
-    # Flush all keys in Redis before each test.
     await redis_client.flushdb()
