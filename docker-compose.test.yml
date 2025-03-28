@@ -27,18 +27,22 @@ services:
       volumes:
          - postgres-test-data:/var/lib/postgresql/test_data
 
-#   fastapi-test:
-#      build:
-#         context: .
-#         dockerfile: backend/Dockerfile
-#      restart: always
-#      env_file: .env.test
-#      depends_on:
-#         - redis
-#         - postgres
-#      ports:
-#         - "${FASTAPI_PORT}:${FASTAPI_PORT}"
-#      command: /app/backend/scripts/entrypoint.sh
+   fastapi-test:
+      build:
+         context: .
+         dockerfile: backend/Dockerfile
+      restart: always
+      env_file: .env.test
+      depends_on:
+         tests:
+            condition: service_completed_successfully
+         redis-test:
+            condition: service_started
+         postgres-test:
+            condition: service_started
+      ports:
+         - "${FASTAPI_PORT}:${FASTAPI_PORT}"
+      command: /app/backend/scripts/entrypoint.sh
 
    tests:
       build:
@@ -48,12 +52,27 @@ services:
       environment:
          - ENV_FILE=.env.test
       depends_on:
-#         - fastapi-test
          - postgres-test
          - redis-test
       volumes:
          - ./reports:/app/reports
       command: /app/backend/scripts/entrypoint.test.sh
+
+   locust:
+      image: locustio/locust
+      depends_on:
+         - fastapi-test
+         - postgres-test
+         - redis-test
+      ports:
+         - "8089:8089"
+      environment:
+         - FASTAPI_HOST=fastapi-test
+         - FASTAPI_PORT=${FASTAPI_PORT}
+      volumes:
+         - ./tests:/tests
+         - ./reports:/app/reports
+      command: -f /tests/locustfile.py --host=http://fastapi-test:${FASTAPI_PORT}
 
 volumes:
    redis-test-data:
